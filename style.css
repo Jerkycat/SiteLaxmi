@@ -223,7 +223,7 @@ main>.default-window form {
 }
 
 .mainpage>img:last-child {
-    max-width: 50%;
+    max-width: 90vh;
     cursor: pointer;
     transition-property: transform;
     transition-timing-function: cubic-bezier(.4, 0, .2, 1);
