@@ -10,6 +10,11 @@
     src: url(static/fonts/Dekko.ttf);
 }
 
+@font-face {
+    font-family: hachimaru;
+    src: url(static/fonts/HachiMaru.ttf);
+}
+
 * {
     margin: 0;
     padding: 0;
@@ -218,7 +223,7 @@ main>.default-window form {
 }
 
 .mainpage>img:last-child {
-    max-width: 30%;
+    max-width: 50%;
     cursor: pointer;
     transition-property: transform;
     transition-timing-function: cubic-bezier(.4, 0, .2, 1);
@@ -387,6 +392,7 @@ main>.default-window form {
 
 /* Texto do capítulo */
 .reader-title {
+    font-family: hachimaru;
     width: min(100%, 50rem);
     font-size: 1.75rem;
     font-weight: bold;
