@@ -248,7 +248,7 @@ main>.default-window form {
     flex-direction: column;
     justify-content: center;
 
-    max-width: 10rem;
+    max-width: 30vh;
 
     border: 0.2rem solid var(--ui-c1);
     border-radius: 0.65rem;
