@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <main>
+        <!-- PAGE 1 - Chapter Select (LEFT) -->
+        <section class="page chapters">
+            <div>
+                <div class="chapter">
+                    <img src="static/imgs/chapters/c_en.png" alt="">
+                </div>
+                <div class="chapter">
+                    <img src="static/imgs/chapters/0_en.png" alt="">
+                </div>
+                <div class="chapter">
+                    <img src="static/imgs/chapters/1_en.png" alt="">
+                </div>
+                <div class="chapter">
+                    <img src="static/imgs/chapters/2_en.png" alt="">
+                </div>
+                <div class="chapter"></div>
+                <div class="chapter"></div>
+            </div>
+        </section>
+
+        <!-- PAGE 2 - Main (RIGHT) -->
+        <section class="page mainpage">
+            <img id="box-img" src="static/imgs/decorations/box.png" alt="">
+        </section>
+    </main>
+
+    <!-- MISC - Accessories -->
+    <div class="booky-panel" id="bookyPanel">
+
+        <!-- Itens que deslizam para baixo -->
+        <div class="booky-items">
+            <div class="booky-items-inner">
+                <button class="default-button lang-btn" data-lang="br">
+                    <img src="static/imgs/decorations/flag_br.png" alt="">
+                </button>
+                <button class="default-button lang-btn" data-lang="en">
+                    <img src="static/imgs/decorations/flag_en.png" alt="">
+                </button>
+                <button class="default-button lang-btn" data-lang="jp">
+                    <img src="static/imgs/decorations/flag_jp.png" alt="">
+                </button>
+                <button class="default-button" id="homeBtn">
+                    <img src="static/imgs/decorations/home.png" alt="">
+                </button>
+                <button class="default-button">
+                    <a target="_blank" href="https://discord.gg/PdTDUgNYaY">
+                        <img src="static/imgs/decorations/discordid.png" alt="">
+                    </a>
+                </button>
+            </div>
+        </div>
+
+        <!-- Booky — sempre visível, empurrado para baixo ao abrir -->
+        <a class="default-button booky-handle" id="bookyBtn">
+            <img src="static/imgs/decorations/booky.png" alt="">
+        </a>
+
+    </div>
+
+    <!-- READER DIALOG -->
+    <dialog id="readerDialog" class="reader-dialog">
+        <button class="reader-close" id="readerClose" aria-label="Fechar">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+        </button>
+        <div class="reader-content" id="readerContent">
+            <!-- Conteúdo do capítulo será injetado aqui -->
+        </div>
+    </dialog>
+
+    <script src="script.js"></script>
+</body>
+
+</html>

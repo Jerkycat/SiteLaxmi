@@ -1,0 +1,488 @@
+:root {
+    --ui-bg: #f1cfd3;
+    --ui-c1: #cd2c3c;
+
+    --ease-out-expo: cubic-bezier(.16, 1, .3, 1);
+}
+
+@font-face {
+    font-family: dekko;
+    src: url(static/fonts/Dekko.ttf);
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+
+    list-style: none;
+
+    text-rendering: optimizeLegibility !important;
+}
+
+body {
+    background-color: var(--ui-bg);
+
+    overflow: hidden;
+}
+
+/* ── Booky Panel ── */
+.booky-panel {
+    position: fixed;
+    top: 0;
+    left: 0;
+
+    display: flex;
+    flex-direction: column;
+
+    padding: 0.5rem;
+
+    border-right: 0.20rem solid var(--ui-c1);
+    border-bottom: 0.20rem solid var(--ui-c1);
+    border-left: none;
+    border-top: none;
+
+    gap: 0.25rem;
+
+    border-bottom-right-radius: 0.65rem;
+}
+
+/* Itens ocultos — expandem para baixo ao abrir */
+.booky-items {
+    display: grid;
+    grid-template-rows: 0fr;
+    transition: grid-template-rows 0.5s var(--ease-out-expo);
+}
+
+.booky-items-inner {
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.booky-panel.open .booky-items {
+    grid-template-rows: 1fr;
+}
+
+/* Booky handle — sempre visível, vira último item ao abrir */
+.booky-handle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    background-color: transparent;
+    cursor: pointer;
+    text-decoration: none;
+
+    border: 0.25rem solid var(--ui-c1);
+    border-radius: 0.65rem;
+
+    transition: transform 0.2s ease;
+}
+
+.booky-handle:hover {
+    transform: scale(1.04) rotate(.5deg);
+}
+
+.booky-handle img {
+    max-height: 4rem;
+    user-select: none;
+    pointer-events: none;
+}
+
+main {
+    display: flex;
+    width: 200vw;
+    height: 100vh;
+    transform: translateX(-100vw);
+    transition: transform .8s var(--ease-out-expo);
+    will-change: transform;
+}
+
+main.shifted {
+    transform: translateX(0);
+}
+
+/* ── Utility - Default Button ── */
+.default-button {
+    display: flex;
+    align-items: center;
+    text-align: center;
+
+    color: var(--ui-ht);
+    text-decoration: none;
+    background-color: transparent;
+    gap: 0.5rem;
+
+    border: none;
+    border-radius: 0.65rem;
+
+    transition: transform 0.2s ease;
+}
+
+.default-button:hover {
+    cursor: pointer;
+    transform: scale(1.02) rotate(.5deg);
+}
+
+.default-button img {
+    max-height: 4rem;
+}
+
+/* ── Utility - Default Window ── */
+.default-window {
+    background-color: transparent;
+    border-radius: 1rem;
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+    padding: 0.65rem;
+    border-top: 0.25rem solid var(--ui-c1);
+    border-bottom: 0.25rem solid var(--ui-c1);
+    border-right: 0.25rem solid var(--ui-c1);
+    gap: 0.25rem;
+}
+
+.default-window p {
+    font-size: 1rem;
+    color: var(--ui-tc);
+}
+
+.default-window p:first-child {
+    font-weight: bold;
+    font-size: 1.5rem;
+    color: var(--ui-ht);
+}
+
+.default-window img {
+    border-radius: 1rem;
+}
+
+.default-window .default-button,
+.default-window .underline-button {
+    white-space: nowrap;
+}
+
+.default-window a.underline-button {
+    font-size: 0.75rem;
+    color: var(--ui-ac);
+}
+
+.default-window .material-symbols-outlined {
+    font-size: 1.25rem;
+}
+
+.default-window section {
+    display: flex;
+    align-items: center;
+    justify-content: space-evenly;
+    gap: 0.5rem;
+}
+
+.default-window>form {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+main>.default-window {
+    align-self: center;
+    padding: 2rem;
+    gap: 1rem;
+}
+
+main>.default-window form {
+    gap: 1rem;
+}
+
+/* ── Pages ── */
+.page {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100vw;
+    height: 100vh;
+    flex-shrink: 0;
+}
+
+/* ── Main ── */
+
+.mainpage {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.mainpage img {
+    user-select: none;
+}
+
+.mainpage>img:last-child {
+    max-width: 30%;
+    cursor: pointer;
+    transition-property: transform;
+    transition-timing-function: cubic-bezier(.4, 0, .2, 1);
+    transition-duration: .2s;
+    animation-duration: .2s;
+}
+
+.mainpage>img:last-child:hover {
+    transform: scale(1.02) rotate(.5deg);
+}
+
+/* ── Chapters ── */
+
+.chapters>div {
+    display: grid;
+    grid-template-columns: repeat(3, auto);
+    justify-content: center;
+    align-items: center;
+
+    width: 85%;
+
+    gap: 1rem;
+}
+
+.chapter {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+
+    max-width: 10rem;
+
+    border: 0.2rem solid var(--ui-c1);
+    border-radius: 0.65rem;
+
+    overflow: hidden;
+    transition: transform 0.2s ease;
+}
+
+.chapter:hover {
+    cursor: pointer;
+    transform: scale(1.02) rotate(.5deg);
+}
+
+.chapter>img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+
+    overflow: hidden;
+}
+
+/* ── Reader Dialog ── */
+
+.reader-dialog {
+    position: fixed;
+    inset: 0;
+    margin: 0;
+
+    width: 100vw;
+    height: 100vh;
+    height: 100dvh;
+    max-width: 100vw;
+    max-height: 100vh;
+    max-height: 100dvh;
+
+    background-color: var(--ui-bg);
+    border: none;
+
+    padding: 0;
+    overflow: hidden;
+
+    /* Animação de saída */
+    opacity: 0;
+    transform: scale(0.98) translateY(16px);
+    transition:
+        opacity 0.35s var(--ease-out-expo),
+        transform 0.35s var(--ease-out-expo),
+        display 0.35s allow-discrete,
+        overlay 0.35s allow-discrete;
+}
+
+.reader-dialog[open] {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+
+    opacity: 1;
+    transform: scale(1) translateY(0);
+}
+
+@starting-style {
+    .reader-dialog[open] {
+        opacity: 0;
+        transform: scale(0.98) translateY(16px);
+    }
+}
+
+/* Sem backdrop — o próprio dialog cobre tudo */
+.reader-dialog::backdrop {
+    display: none;
+}
+
+/* Botão de fechar — canto superior direito */
+.reader-close {
+    position: absolute;
+    top: 0.75rem;
+    right: 0.75rem;
+    z-index: 10;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    width: 2.25rem;
+    height: 2.25rem;
+
+    background-color: var(--ui-bg);
+    color: var(--ui-c1);
+    border: 0.2rem solid var(--ui-c1);
+    border-radius: 0.5rem;
+
+    cursor: pointer;
+    transition: transform 0.2s ease, background-color 0.15s ease;
+}
+
+.reader-close:hover {
+    transform: scale(1.08) rotate(4deg);
+    background-color: var(--ui-c1);
+    color: var(--ui-bg);
+}
+
+.reader-close svg {
+    pointer-events: none;
+}
+
+/* Área de conteúdo do reader */
+.reader-content {
+    flex: 1;
+    min-height: 0;
+    width: 100%;
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0;
+
+    padding: 4rem 2rem 4rem;
+
+    /* Scrollbar customizada */
+    scrollbar-width: thin;
+    scrollbar-color: var(--ui-c1) transparent;
+}
+
+.reader-content::-webkit-scrollbar {
+    width: 5px;
+}
+
+.reader-content::-webkit-scrollbar-thumb {
+    background-color: var(--ui-c1);
+    border-radius: 99px;
+}
+
+/* Texto do capítulo */
+.reader-title {
+    width: min(100%, 50rem);
+    font-size: 1.75rem;
+    font-weight: bold;
+    color: var(--ui-c1);
+    margin-bottom: 1.5rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 0.15rem solid var(--ui-c1);
+    line-height: 1.3;
+}
+
+.reader-paragraph {
+    width: min(100%, 50rem);
+    font-size: 1.25rem;
+    line-height: 1.85;
+    color: #3a1a1e;
+    margin-bottom: 1.25rem;
+    text-align: justify;
+    text-indent: 1.5em;
+
+    font-family: dekko;
+}
+
+.reader-loading,
+.reader-error {
+    width: min(100%, 50rem);
+    font-size: 1rem;
+    color: var(--ui-c1);
+    opacity: 0.6;
+    text-align: center;
+    margin-top: 2rem;
+}
+
+/* ── Letter Block ── */
+
+.reader-letter {
+    width: min(100%, 50rem);
+    margin: 1.5rem 0;
+
+    background-color: #fffdf7;
+    border: 1px solid #d4c5a9;
+    border-radius: 0.25rem;
+
+    padding: 2.5rem 3rem;
+
+    box-shadow:
+        0 2px 8px rgba(0, 0, 0, .08),
+        inset 0 0 40px rgba(210, 190, 150, .12);
+
+    /* Linhas horizontais sutis simulando papel pautado */
+    background-image: repeating-linear-gradient(to bottom,
+            transparent,
+            transparent calc(1.85em * 1.25rem / 1rem - 1px),
+            rgba(180, 160, 120, .18) calc(1.85em * 1.25rem / 1rem - 1px),
+            rgba(180, 160, 120, .18) calc(1.85em * 1.25rem / 1rem));
+    background-size: 100% calc(1.85 * 1.25rem);
+    background-position-y: 2.5rem;
+}
+
+.reader-letter .reader-paragraph {
+    font-family: 'Georgia', 'Palatino Linotype', serif;
+    font-size: 1.1rem;
+    color: #2c1f0e;
+    line-height: 1.85;
+    text-indent: 0;
+    text-align: left;
+    margin-bottom: 1rem;
+    white-space: pre-wrap;
+    /* preserva tabs e espaços do arquivo original */
+}
+
+.reader-letter .reader-title {
+    font-family: 'Georgia', 'Palatino Linotype', serif;
+    font-size: 1.3rem;
+    color: #5a3a1a;
+    border-bottom-color: #c9b48a;
+    margin-bottom: 1.25rem;
+}
+
+/* Mobile */
+
+@media (max-width:760px) {
+    body {
+        height: fit-content;
+    }
+
+    .chapters>div {
+        grid-template-columns: repeat(2, auto);
+
+        height: 70%;
+    }
+
+    .reader-title {
+        font-size: 1.25rem;
+    }
+
+    .reader-paragraph {
+        font-size: 1.05rem;
+    }
+}
