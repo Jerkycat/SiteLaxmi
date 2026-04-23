@@ -419,6 +419,12 @@ main>.default-window form {
     margin-top: 2rem;
 }
 
+.reader-paragraph, .reader-letter {
+    /* Preserve as quebras de linha (\n) e espaços, mas quebra a linha se o texto for muito longo */
+    white-space: pre-wrap; 
+    word-wrap: break-word;
+}
+
 /* ── Letter Block ── */
 
 .reader-letter {
