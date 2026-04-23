@@ -213,7 +213,7 @@
             buffer = [];
             if (!joined) return;
 
-            joined.split(/\n{2,}/).forEach(block => {
+            joined.split(/\r?\n\r?\n/).forEach(block => {
                 // Remove apenas quebras de linha nas pontas do bloco, não tabs
                 const stripped = block.replace(/^[\n\r]+|[\n\r]+$/g, '');
                 if (!stripped) return;
