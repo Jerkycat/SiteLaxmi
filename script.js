@@ -6,23 +6,23 @@
 
     const langMap = {
         br: {
-            logo:          'static/imgs/logos/pt.png',
-            box:           'static/imgs/decorations/webyy_br.png',
+            logo: 'static/imgs/logos/pt.png',
+            box: 'static/imgs/decorations/webyy_br.png',
             chapterSuffix: '_pt',
         },
         en: {
-            logo:          'static/imgs/logos/en.png',
-            box:           'static/imgs/decorations/webyy_en.png',
+            logo: 'static/imgs/logos/en.png',
+            box: 'static/imgs/decorations/webyy_en.png',
             chapterSuffix: '_en',
         },
         jp: {
-            logo:          'static/imgs/logos/jp.png',
-            box:           'static/imgs/decorations/webyy_jp.png',
+            logo: 'static/imgs/logos/jp.png',
+            box: 'static/imgs/decorations/webyy_jp.png',
             chapterSuffix: '_jp',
         },
     };
 
-    const boxImg   = document.getElementById('box-img');
+    const boxImg = document.getElementById('box-img');
     const langBtns = document.querySelectorAll('.lang-btn');
     const chapters = document.querySelectorAll('.chapter');
 
@@ -43,7 +43,7 @@
                 chapter.appendChild(img);
             } else {
                 // Caso 2: A tag img já existe no HTML (capítulos 0, 1 e 2)
-                
+
                 // Salva o caminho "base" original na primeira vez que o script roda.
                 // Isso garante que não vamos perder o nome do arquivo se a imagem falhar e virar placeholder.
                 if (!img.dataset.baseSrc) {
@@ -56,14 +56,14 @@
                 } else {
                     // Tenta carregar a imagem do idioma selecionado usando o baseSrc salvo
                     const targetSrc = img.dataset.baseSrc.replace(/_(en|pt|jp)(?=\.\w+$)/, config.chapterSuffix);
-                    
+
                     // Configura o evento de erro ANTES de tentar carregar a nova imagem
-                    img.onerror = function() {
+                    img.onerror = function () {
                         // Se a imagem não existir (ex: JP dos capítulos 0, 1 e 2), cai aqui e troca pelo placeholder
                         this.src = `static/imgs/chapters/placeholders/ph${config.chapterSuffix}.png`;
-                        
+
                         // Remove o evento para evitar um loop infinito caso o próprio arquivo do placeholder falte
-                        this.onerror = null; 
+                        this.onerror = null;
                     };
 
                     // Dispara o carregamento
@@ -93,8 +93,8 @@
     /* ── Page navigation ── */
     const PAGE_KEY = 'selectedPage';
 
-    const main    = document.querySelector('main');
-    const boxBtn  = document.querySelector('.mainpage > img:last-child');
+    const main = document.querySelector('main');
+    const boxBtn = document.querySelector('.mainpage > img:last-child');
     const backBtn = document.getElementById('backBtn');
     const homeBtn = document.getElementById('homeBtn');
 
@@ -148,7 +148,7 @@
 
     /* ── Booky panel toggle ── */
     const bookyPanel = document.getElementById('bookyPanel');
-    const bookyBtn   = document.getElementById('bookyBtn');
+    const bookyBtn = document.getElementById('bookyBtn');
 
     bookyBtn.addEventListener('click', (e) => {
         e.stopPropagation();
@@ -170,8 +170,8 @@
     });
 
     /* ── Reader Dialog ── */
-    const readerDialog  = document.getElementById('readerDialog');
-    const readerClose   = document.getElementById('readerClose');
+    const readerDialog = document.getElementById('readerDialog');
+    const readerClose = document.getElementById('readerClose');
     const readerContent = document.getElementById('readerContent');
 
     /**
@@ -204,7 +204,7 @@
         const lines = text.split('\n');
         let inLetter = false;
         let letterEl = null;
-        let buffer   = [];
+        let buffer = [];
 
         function flushBuffer(container) {
             if (!buffer.length) return;
@@ -265,6 +265,11 @@
 
         readerContent.innerHTML = '<p class="reader-loading">Carregando...</p>';
         readerContent.scrollTop = 0;
+
+        // Garante que o dialog abra sempre centralizado no viewport
+        window.scrollTo({ top: 0, behavior: 'instant' });
+        document.body.classList.add('reader-open');   // trava scroll do fundo
+
         readerDialog.showModal();
 
         if (!filename) {
@@ -287,6 +292,7 @@
 
     function closeReader() {
         readerDialog.close();
+        document.body.classList.remove('reader-open');   // libera scroll do fundo
     }
 
     // Clique nos chapters
