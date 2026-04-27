@@ -480,6 +480,24 @@ main>.default-window form {
     margin-bottom: 1.25rem;
 }
 
+/* Reader Media */
+
+.reader-media {
+    margin: 1.5rem 0;
+    text-align: center; /* centraliza caso a imagem não ocupe a largura toda */
+}
+
+.reader-media img {
+    max-width: 100%;    /* nunca ultrapassa o leitor */
+    height: auto;
+    display: inline-block;
+}
+
+.reader-media--error {
+    /* estilo opcional para quando a imagem não for encontrada */
+    display: none;
+}
+
 /* Mobile */
 
 @media (max-width:760px) {

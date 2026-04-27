@@ -206,6 +206,8 @@
         let letterEl = null;
         let buffer = [];
 
+        const MEDIA_RE = /^<%(.+?)%>$/;
+
         function flushBuffer(container) {
             if (!buffer.length) return;
             // Só remove quebras de linha nas pontas — tabs e espaços internos são preservados
@@ -217,6 +219,26 @@
                 // Remove apenas quebras de linha nas pontas do bloco, não tabs
                 const stripped = block.replace(/^[\n\r]+|[\n\r]+$/g, '');
                 if (!stripped) return;
+
+                // Verifica se o bloco é uma mídia: <%nome_da_imagem.png%>
+                const mediaMatch = stripped.trim().match(MEDIA_RE);
+                if (mediaMatch) {
+                    const filename = mediaMatch[1].trim();
+                    const figure = document.createElement('figure');
+                    figure.className = 'reader-media';
+                    const img = document.createElement('img');
+                    img.src = `static/imgs/media/${filename}`;
+                    img.alt = filename;
+                    img.loading = 'lazy';
+                    img.onerror = function () {
+                        figure.classList.add('reader-media--error');
+                        figure.title = `Mídia não encontrada: ${filename}`;
+                        this.remove();
+                    };
+                    figure.appendChild(img);
+                    container.appendChild(figure);
+                    return;
+                }
 
                 if (stripped.trimStart().startsWith('#')) {
                     const h = document.createElement('h2');
