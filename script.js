@@ -1,8 +1,36 @@
 (function () {
     'use strict';
 
+    /* ── Storage seguro (localStorage pode estar bloqueado) ── */
+    const store = {
+        get(key) {
+            try { return localStorage.getItem(key); } catch (e) { return null; }
+        },
+        set(key, value) {
+            try { localStorage.setItem(key, value); } catch (e) { /* ignora */ }
+        },
+    };
+
+    /* ── Elementos ── */
+    const main = document.querySelector('main');
+    const pageChapters = document.getElementById('pageChapters');
+    const pageMain = document.getElementById('pageMain');
+    const chaptersGrid = document.getElementById('chaptersGrid');
+    const boxImg = document.getElementById('box-img');
+    const boxBtn = document.getElementById('boxBtn');
+    const homeBtn = document.getElementById('homeBtn');
+    const discordLink = document.getElementById('discordLink');
+    const bookyPanel = document.getElementById('bookyPanel');
+    const bookyItems = document.getElementById('bookyItems');
+    const bookyBtn = document.getElementById('bookyBtn');
+    const readerDialog = document.getElementById('readerDialog');
+    const readerClose = document.getElementById('readerClose');
+    const readerContent = document.getElementById('readerContent');
+    const langBtns = document.querySelectorAll('.lang-btn');
+
     /* ── Language config ── */
     const LANG_KEY = 'selectedLang';
+    const DEFAULT_LANG = 'jp';
 
     const langMap = {
         br: {
@@ -22,67 +50,170 @@
         },
     };
 
-    const boxImg = document.getElementById('box-img');
-    const langBtns = document.querySelectorAll('.lang-btn');
-    const chapters = document.querySelectorAll('.chapter');
+    /* ── Manifesto dos capítulos ──
+     * Fonte única de verdade: o que existe e em quais idiomas.
+     *   id    → prefixo dos arquivos (static/imgs/chapters/{id}_xx.png e static/chapters/{id}_xx.txt)
+     *   langs → idiomas que têm capa + texto (chaves de langMap)
+     *   id: null → vaga "em breve" (sempre placeholder)
+     * Idioma que não está em `langs` mostra o placeholder, sem tentar (e falhar) no servidor.
+     */
+    const CHAPTERS = [
+        { id: 'c', langs: ['br', 'en', 'jp'] },
+        { id: '0', langs: ['br', 'en'] },
+        { id: '1', langs: ['br', 'en'] },
+        { id: '2', langs: ['br', 'en'] },
+        { id: null },
+        { id: null },
+    ];
+
+    /* ── Textos da interface (acessibilidade e leitor) ── */
+    const i18n = {
+        br: {
+            htmlLang: 'pt-BR',
+            langName: 'Português',
+            loading: 'Carregando...',
+            error: (f) => `Não foi possível carregar o capítulo "${f}".`,
+            close: 'Fechar',
+            chapter: (id) => `Capítulo ${id}`,
+            soon: 'Em breve',
+            openChapters: 'Abrir capítulos',
+            home: 'Início',
+            menu: 'Menu',
+            chaptersPage: 'Capítulos',
+            mainPage: 'Página inicial',
+        },
+        en: {
+            htmlLang: 'en',
+            langName: 'English',
+            loading: 'Loading...',
+            error: (f) => `Could not load chapter "${f}".`,
+            close: 'Close',
+            chapter: (id) => `Chapter ${id}`,
+            soon: 'Coming soon',
+            openChapters: 'Open chapters',
+            home: 'Home',
+            menu: 'Menu',
+            chaptersPage: 'Chapters',
+            mainPage: 'Home page',
+        },
+        jp: {
+            htmlLang: 'ja',
+            langName: '日本語',
+            loading: '読み込み中...',
+            error: (f) => `章「${f}」を読み込めませんでした。`,
+            close: '閉じる',
+            chapter: (id) => `第${id}章`,
+            soon: '近日公開',
+            openChapters: '章を開く',
+            home: 'ホーム',
+            menu: 'メニュー',
+            chaptersPage: '章一覧',
+            mainPage: 'トップページ',
+        },
+    };
+
+    let currentLang = DEFAULT_LANG;
+
+    /* ── Capítulos ── */
+
+    /** Decide capa e arquivo de texto de um capítulo para o idioma dado. */
+    function resolveChapter(entry, lang) {
+        const suffix = langMap[lang].chapterSuffix;
+
+        if (entry.id !== null && entry.langs.includes(lang)) {
+            const file = `${entry.id}${suffix}`;
+            return { file, cover: `static/imgs/chapters/${file}.png`, placeholder: false };
+        }
+
+        const file = `ph${suffix}`;
+        return { file, cover: `static/imgs/chapters/placeholders/${file}.png`, placeholder: true };
+    }
+
+    // Cria os botões a partir do manifesto
+    const chapterItems = CHAPTERS.map((entry) => {
+        const el = document.createElement('button');
+        el.type = 'button';
+        el.className = 'chapter';
+
+        const img = document.createElement('img');
+        img.alt = '';
+        el.appendChild(img);
+
+        chaptersGrid.appendChild(el);
+
+        const item = { entry, el, img, state: null };
+        el.addEventListener('click', () => openReader(item));
+        return item;
+    });
+
+    /** Nome acessível de um capítulo (placeholder vira "em breve"). */
+    function labelChapter(item) {
+        const t = i18n[currentLang];
+        const label = item.state.placeholder
+            ? t.soon
+            : t.chapter(String(item.entry.id).toUpperCase());
+        item.el.setAttribute('aria-label', label);
+    }
+
+    function applyChapter(item, lang) {
+        item.state = resolveChapter(item.entry, lang);
+
+        // Rede de segurança: se o manifesto prometeu uma capa que não existe, cai no placeholder
+        item.img.onerror = () => {
+            item.img.onerror = null;   // evita loop se o próprio placeholder faltar
+            item.state = resolveChapter({ id: null }, currentLang);
+            item.img.src = item.state.cover;
+            labelChapter(item);
+        };
+
+        if (item.img.getAttribute('src') !== item.state.cover) {
+            item.img.src = item.state.cover;
+        }
+
+        labelChapter(item);
+    }
+
+    function applyLabels(lang) {
+        const t = i18n[lang];
+
+        document.documentElement.lang = t.htmlLang;
+
+        boxBtn.setAttribute('aria-label', t.openChapters);
+        homeBtn.setAttribute('aria-label', t.home);
+        bookyBtn.setAttribute('aria-label', t.menu);
+        readerClose.setAttribute('aria-label', t.close);
+        discordLink.setAttribute('aria-label', 'Discord');
+        pageChapters.setAttribute('aria-label', t.chaptersPage);
+        pageMain.setAttribute('aria-label', t.mainPage);
+
+        langBtns.forEach(btn => {
+            btn.setAttribute('aria-label', i18n[btn.dataset.lang].langName);
+        });
+    }
 
     function applyLang(lang) {
         const config = langMap[lang];
         if (!config) return;
 
+        currentLang = lang;
         boxImg.src = config.box;
 
-        chapters.forEach(chapter => {
-            let img = chapter.querySelector('img');
-
-            if (!img) {
-                // Caso 1: O capítulo nem tem a tag img no HTML (como nos seus dois capítulos finais)
-                img = document.createElement('img');
-                img.dataset.isPlaceholder = "true"; // Marcador para sabermos que nasceu vazio
-                img.src = `static/imgs/chapters/placeholders/ph${config.chapterSuffix}.png`;
-                chapter.appendChild(img);
-            } else {
-                // Caso 2: A tag img já existe no HTML (capítulos 0, 1 e 2)
-
-                // Salva o caminho "base" original na primeira vez que o script roda.
-                // Isso garante que não vamos perder o nome do arquivo se a imagem falhar e virar placeholder.
-                if (!img.dataset.baseSrc) {
-                    img.dataset.baseSrc = img.src;
-                }
-
-                if (img.dataset.isPlaceholder === "true") {
-                    // Se foi uma imagem criada pelo JS puramente como placeholder (Caso 1)
-                    img.src = `static/imgs/chapters/placeholders/ph${config.chapterSuffix}.png`;
-                } else {
-                    // Tenta carregar a imagem do idioma selecionado usando o baseSrc salvo
-                    const targetSrc = img.dataset.baseSrc.replace(/_(en|pt|jp)(?=\.\w+$)/, config.chapterSuffix);
-
-                    // Configura o evento de erro ANTES de tentar carregar a nova imagem
-                    img.onerror = function () {
-                        // Se a imagem não existir (ex: JP dos capítulos 0, 1 e 2), cai aqui e troca pelo placeholder
-                        this.src = `static/imgs/chapters/placeholders/ph${config.chapterSuffix}.png`;
-
-                        // Remove o evento para evitar um loop infinito caso o próprio arquivo do placeholder falte
-                        this.onerror = null;
-                    };
-
-                    // Dispara o carregamento
-                    img.src = targetSrc;
-                }
-            }
-        });
+        chapterItems.forEach(item => applyChapter(item, lang));
 
         // Marca o botão ativo
         langBtns.forEach(btn => {
-            btn.classList.toggle('selected-theme', btn.dataset.lang === lang);
+            const active = btn.dataset.lang === lang;
+            btn.classList.toggle('selected-theme', active);
+            btn.setAttribute('aria-pressed', String(active));
         });
 
-        localStorage.setItem(LANG_KEY, lang);
+        applyLabels(lang);
+        store.set(LANG_KEY, lang);
     }
 
     // Aplica idioma salvo ou o padrão (jp)
-    const savedLang = localStorage.getItem(LANG_KEY) || 'jp';
-    applyLang(savedLang);
+    const storedLang = store.get(LANG_KEY);
+    applyLang(langMap[storedLang] ? storedLang : DEFAULT_LANG);
 
     langBtns.forEach(btn => {
         btn.addEventListener('click', () => {
@@ -90,108 +221,165 @@
         });
     });
 
-    /* ── Page navigation ── */
-    const PAGE_KEY = 'selectedPage';
+    /* ── Page navigation (scroll-snap nativo + URLs limpas) ──
+     *   /          → página principal
+     *   /chapters  → seleção de capítulos
+     * O swipe, o arrasto, a inércia e o trackpad são do navegador.
+     * O JS só: abre a página da URL, reage à página visível
+     * (inert / History API) e oferece botões e teclado.
+     * Obs.: abrir/recarregar /chapters direto exige que o servidor devolva
+     * o index.html para essa rota (fallback de SPA).
+     */
+    const BASE = new URL(document.baseURI).pathname;   // pasta do app; sempre termina em "/"
+    const PAGE_PATHS = ['chapters', ''];               // mesma ordem do DOM: esquerda → direita
+    const pages = [pageChapters, pageMain];
+    const CHAPTERS_PAGE = 0;
+    const MAIN = 1;
 
-    const main = document.querySelector('main');
-    const boxBtn = document.querySelector('.mainpage > img:last-child');
-    const backBtn = document.getElementById('backBtn');
-    const homeBtn = document.getElementById('homeBtn');
+    let current = -1;
 
-    function applyPage(shifted) {
-        main.classList.toggle('shifted', shifted);
-        localStorage.setItem(PAGE_KEY, shifted ? 'chapters' : 'main');
+    function prefersReducedMotion() {
+        return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     }
 
-    // Restaura posição salva (sem animação, para não piscar na tela)
-    if (localStorage.getItem(PAGE_KEY) === 'chapters') {
-        main.style.transition = 'none';
-        main.classList.add('shifted');
-        main.getBoundingClientRect(); // força reflow síncrono antes de liberar a transição
-        main.style.transition = '';
+    function pathFor(index) {
+        return BASE + PAGE_PATHS[index];
     }
 
-    boxBtn.addEventListener('click', () => {
-        applyPage(true);
-    });
+    /** Qual página a URL atual representa (qualquer rota desconhecida cai na principal). */
+    function pageFromPath() {
+        const path = location.pathname;
+        const rel = (path.startsWith(BASE) ? path.slice(BASE.length) : '').replace(/\/+$/, '');
+        const index = PAGE_PATHS.indexOf(rel);
+        return index === -1 ? MAIN : index;
+    }
 
-    if (backBtn) {
-        backBtn.addEventListener('click', () => {
-            applyPage(false);
+    function syncUrl(index, replace) {
+        const target = pathFor(index);
+        if (location.pathname === target) return;
+
+        try {
+            history[replace ? 'replaceState' : 'pushState'](null, '', target);
+        } catch (e) {
+            /* ex.: abrindo via file:// — a navegação segue funcionando, só a URL não muda */
+        }
+    }
+
+    function scrollToPage(index, smooth) {
+        main.scrollTo({
+            left: index * main.clientWidth,
+            behavior: smooth && !prefersReducedMotion() ? 'smooth' : 'auto',
         });
     }
 
-    homeBtn.addEventListener('click', () => {
-        applyPage(false);
-        bookyPanel.classList.remove('open');
+    function goTo(index) {
+        if (index < 0 || index >= pages.length) return;
+        scrollToPage(index, true);
+    }
+
+    /** Chamado quando a página visível muda (swipe, botão, teclado ou "voltar"). */
+    function setCurrent(index) {
+        const previousFocus = document.activeElement;
+        current = index;
+
+        // A página fora da tela não deve receber foco nem ser lida por leitores de tela
+        pages.forEach((page, i) => { page.inert = i !== index; });
+
+        // Histórico: o botão "voltar" do navegador volta para a página anterior
+        syncUrl(index, false);
+
+        // Se o foco estava na página que saiu de cena, leva para a nova
+        const lostFocus = pages.some((page, i) => i !== index && page.contains(previousFocus));
+        if (lostFocus) pages[index].focus({ preventScroll: true });
+    }
+
+    // Posição inicial: a que a URL pede (sem animação)
+    (function initPage() {
+        const start = pageFromPath();
+
+        scrollToPage(start, false);
+        current = start;
+        pages.forEach((page, i) => { page.inert = i !== start; });
+
+        // Normaliza URLs como /index.html, /chapters/ ou rotas desconhecidas
+        syncUrl(start, true);
+    })();
+
+    // Descobre qual página está visível (mais de 60%)
+    const pageObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (!entry.isIntersecting) return;
+            const index = pages.indexOf(entry.target);
+            if (index !== -1 && index !== current) setCurrent(index);
+        });
+    }, { root: main, threshold: 0.6 });
+
+    pages.forEach(page => pageObserver.observe(page));
+
+    // Botão "voltar"/"avançar" do navegador
+    window.addEventListener('popstate', () => {
+        const index = pageFromPath();
+        if (index !== current) goTo(index);
     });
 
-    /* ── Swipe support ── */
-    let touchStartX = 0;
+    // Mantém a página alinhada se a janela mudar de tamanho
+    window.addEventListener('resize', () => scrollToPage(current, false));
 
-    document.addEventListener('touchstart', (e) => {
-        if (readerDialog.open) return;
-        touchStartX = e.touches[0].clientX;
-    }, { passive: true });
+    boxBtn.addEventListener('click', () => goTo(CHAPTERS_PAGE));
 
-    document.addEventListener('touchend', (e) => {
-        if (readerDialog.open) return;
-        const delta = touchStartX - e.changedTouches[0].clientX;
-        if (Math.abs(delta) < 60) return;
-        if (delta > 0 && !main.classList.contains('shifted')) {
-            applyPage(true);
-        }
-        if (delta < 0 && main.classList.contains('shifted')) {
-            applyPage(false);
-        }
+    homeBtn.addEventListener('click', () => {
+        goTo(MAIN);
+        setBooky(false);
     });
 
     /* ── Booky panel toggle ── */
-    const bookyPanel = document.getElementById('bookyPanel');
-    const bookyBtn = document.getElementById('bookyBtn');
+    function setBooky(open) {
+        bookyPanel.classList.toggle('open', open);
+        bookyItems.inert = !open;   // fechado: itens fora da ordem de tabulação
+        bookyBtn.setAttribute('aria-expanded', String(open));
+    }
 
     bookyBtn.addEventListener('click', (e) => {
         e.stopPropagation();
-        bookyPanel.classList.toggle('open');
+        setBooky(!bookyPanel.classList.contains('open'));
     });
 
     // Fecha ao clicar fora
     document.addEventListener('click', (e) => {
         if (!bookyPanel.contains(e.target)) {
-            bookyPanel.classList.remove('open');
+            setBooky(false);
         }
     });
 
-    // Fecha ao pressionar Escape
+    /* ── Teclado ── */
     document.addEventListener('keydown', (e) => {
+        // Fecha o Booky ao pressionar Escape
         if (e.key === 'Escape') {
-            bookyPanel.classList.remove('open');
+            if (bookyPanel.classList.contains('open')) {
+                const hadFocus = bookyItems.contains(document.activeElement);
+                setBooky(false);
+                if (hadFocus) bookyBtn.focus();
+            }
+            return;
+        }
+
+        // Setas trocam de página (exceto com o leitor aberto ou com modificadores)
+        if (readerDialog.open) return;
+        if (e.altKey || e.ctrlKey || e.metaKey || e.shiftKey) return;
+
+        if (e.key === 'ArrowLeft' && current > 0) {
+            e.preventDefault();
+            goTo(current - 1);
+        } else if (e.key === 'ArrowRight' && current < pages.length - 1) {
+            e.preventDefault();
+            goTo(current + 1);
         }
     });
 
     /* ── Reader Dialog ── */
-    const readerDialog = document.getElementById('readerDialog');
-    const readerClose = document.getElementById('readerClose');
-    const readerContent = document.getElementById('readerContent');
-
-    /**
-     * Extrai o nome completo do arquivo do capítulo a partir do src da imagem.
-     * Ex: "static/imgs/chapters/0_en.png" → "0_en"
-     *     "static/imgs/chapters/c_pt.png" → "c_pt"
-     *     placeholder ou sem imagem       → null
-     */
-    function getChapterFilename(chapterEl) {
-        const img = chapterEl.querySelector('img');
-        if (!img) return null;
-
-        // Usa o src atual (já reflete a língua ativa via applyLang)
-        const src = img.src;
-
-        // Pega o nome do arquivo sem extensão: "0_en", "ph_pt", etc.
-        const filename = src.split('/').pop().replace(/\.\w+$/, '');
-
-        return filename || null;
-    }
+    let lastFocused = null;
+    let readerAbort = null;
+    const textCache = new Map();   // arquivo → texto já baixado
 
     /**
      * Renderiza o texto do arquivo como parágrafos no reader.
@@ -278,60 +466,78 @@
         flushBuffer(inLetter && letterEl ? letterEl : readerContent);
     }
 
+    function showMessage(className, text) {
+        readerContent.replaceChildren();
+        const p = document.createElement('p');
+        p.className = className;
+        p.textContent = text;
+        readerContent.appendChild(p);
+    }
+
+    /** Baixa o texto do capítulo (com cache em memória). */
+    async function loadChapterText(file, signal) {
+        if (textCache.has(file)) return textCache.get(file);
+
+        const res = await fetch(`static/chapters/${file}.txt`, { signal });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+        const text = await res.text();
+        textCache.set(file, text);
+        return text;
+    }
+
     /**
      * Abre o dialog e carrega o arquivo de texto do capítulo.
-     * O arquivo é buscado em static/chapters/{id}_{lang}.txt
+     * O arquivo é buscado em static/chapters/{file}.txt (file vem do manifesto).
      */
-    async function openReader(chapterEl) {
-        const filename = getChapterFilename(chapterEl);
+    async function openReader(item) {
+        const t = i18n[currentLang];
+        const { file } = item.state;
 
-        readerContent.innerHTML = '<p class="reader-loading">Carregando...</p>';
+        lastFocused = item.el;
+        readerDialog.setAttribute('aria-label', item.el.getAttribute('aria-label') || '');
+
+        // Cancela qualquer carregamento anterior ainda em andamento
+        if (readerAbort) readerAbort.abort();
+        readerAbort = new AbortController();
+        const { signal } = readerAbort;
+
+        showMessage('reader-loading', t.loading);
         readerContent.scrollTop = 0;
 
-        // Garante que o dialog abra sempre centralizado no viewport
-        window.scrollTo({ top: 0, behavior: 'instant' });
         document.body.classList.add('reader-open');   // trava scroll do fundo
 
         readerDialog.showModal();
 
-        if (!filename) {
-            readerContent.innerHTML = '<p class="reader-error">Capítulo sem conteúdo.</p>';
-            return;
-        }
-
         try {
-            const res = await fetch(`static/chapters/${filename}.txt`);
+            const text = await loadChapterText(file, signal);
+            if (signal.aborted) return;
 
-            if (!res.ok) throw new Error(`HTTP ${res.status}`);
-
-            const text = await res.text();
             renderText(text);
             readerContent.scrollTop = 0;
         } catch (err) {
-            readerContent.innerHTML = `<p class="reader-error">Não foi possível carregar o capítulo "${filename}".</p>`;
+            if (err.name === 'AbortError') return;
+            showMessage('reader-error', t.error(file));
         }
     }
 
-    function closeReader() {
-        readerDialog.close();
-        document.body.classList.remove('reader-open');   // libera scroll do fundo
-    }
+    // Qualquer forma de fechar (botão, Esc, botão "voltar" do Android) passa por aqui:
+    // cancela o download, libera o scroll do fundo e devolve o foco ao capítulo que abriu o leitor.
+    readerDialog.addEventListener('close', () => {
+        if (readerAbort) {
+            readerAbort.abort();
+            readerAbort = null;
+        }
 
-    // Clique nos chapters
-    chapters.forEach(chapter => {
-        chapter.addEventListener('click', () => {
-            openReader(chapter);
-        });
+        document.body.classList.remove('reader-open');
+
+        if (lastFocused) {
+            lastFocused.focus({ preventScroll: true });
+            lastFocused = null;
+        }
     });
 
     // Botão de fechar
-    readerClose.addEventListener('click', closeReader);
-
-    // Fecha ao clicar no backdrop (fora do dialog)
-    readerDialog.addEventListener('click', (e) => {
-        if (e.target === readerDialog) {
-            closeReader();
-        }
-    });
+    readerClose.addEventListener('click', () => readerDialog.close());
 
 })();

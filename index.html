@@ -3,8 +3,19 @@
 
 <head>
     <meta charset="UTF-8">
+
+    <!-- Base do app: mantém static/, style.css e script.js resolvendo certo em /chapters e /chapters/ -->
+    <script>
+        (function () {
+            var base = location.pathname.replace(/\/(index\.html|chapters\/?)$/, '/');
+            if (base.charAt(base.length - 1) !== '/') base += '/';
+            var el = document.createElement('base');
+            el.href = base;
+            document.head.appendChild(el);
+        })();
+    </script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>Laxmi</title>
 
     <link rel="stylesheet" href="style.css">
 </head>
@@ -12,69 +23,58 @@
 <body>
     <main>
         <!-- PAGE 1 - Chapter Select (LEFT) -->
-        <section class="page chapters">
-            <div>
-                <div class="chapter">
-                    <img src="static/imgs/chapters/c_en.png" alt="">
-                </div>
-                <div class="chapter">
-                    <img src="static/imgs/chapters/0_en.png" alt="">
-                </div>
-                <div class="chapter">
-                    <img src="static/imgs/chapters/1_en.png" alt="">
-                </div>
-                <div class="chapter">
-                    <img src="static/imgs/chapters/2_en.png" alt="">
-                </div>
-                <div class="chapter"></div>
-                <div class="chapter"></div>
-            </div>
+        <section class="page chapters" id="pageChapters" tabindex="-1">
+            <!-- Capítulos gerados por script.js (manifesto CHAPTERS) -->
+            <div id="chaptersGrid"></div>
         </section>
 
         <!-- PAGE 2 - Main (RIGHT) -->
-        <section class="page mainpage">
-            <img id="box-img" src="static/imgs/decorations/box.png" alt="">
+        <section class="page mainpage" id="pageMain" tabindex="-1">
+            <button type="button" class="box-btn" id="boxBtn">
+                <img id="box-img" src="static/imgs/decorations/box.png" alt="">
+            </button>
         </section>
     </main>
 
     <!-- MISC - Accessories -->
     <div class="booky-panel" id="bookyPanel">
 
-        <!-- Itens que deslizam para baixo -->
-        <div class="booky-items">
+        <!-- Itens que deslizam para baixo (inert enquanto fechado) -->
+        <div class="booky-items" id="bookyItems" inert>
             <div class="booky-items-inner">
-                <button class="default-button lang-btn" data-lang="br">
+                <button type="button" class="default-button lang-btn" data-lang="br" aria-pressed="false">
                     <img src="static/imgs/decorations/flag_br.png" alt="">
                 </button>
-                <button class="default-button lang-btn" data-lang="en">
+                <button type="button" class="default-button lang-btn" data-lang="en" aria-pressed="false">
                     <img src="static/imgs/decorations/flag_en.png" alt="">
                 </button>
-                <button class="default-button lang-btn" data-lang="jp">
+                <button type="button" class="default-button lang-btn" data-lang="jp" aria-pressed="false">
                     <img src="static/imgs/decorations/flag_jp.png" alt="">
                 </button>
-                <button class="default-button" id="homeBtn">
+                <button type="button" class="default-button" id="homeBtn">
                     <img src="static/imgs/decorations/home.png" alt="">
                 </button>
-                <button class="default-button">
-                    <a target="_blank" href="https://discord.gg/PdTDUgNYaY">
-                        <img src="static/imgs/decorations/discordid.png" alt="">
-                    </a>
-                </button>
+                <a class="default-button" id="discordLink" target="_blank" rel="noopener noreferrer"
+                    href="https://discord.gg/PdTDUgNYaY">
+                    <img src="static/imgs/decorations/discordid.png" alt="">
+                </a>
             </div>
         </div>
 
         <!-- Booky — sempre visível, empurrado para baixo ao abrir -->
-        <a class="default-button booky-handle" id="bookyBtn">
+        <button type="button" class="default-button booky-handle" id="bookyBtn" aria-expanded="false"
+            aria-controls="bookyItems">
             <img src="static/imgs/decorations/booky.png" alt="">
-        </a>
+        </button>
 
     </div>
 
     <!-- READER DIALOG -->
     <dialog id="readerDialog" class="reader-dialog">
-        <button class="reader-close" id="readerClose" aria-label="Fechar">
+        <button type="button" class="reader-close" id="readerClose" aria-label="Fechar">
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
-                stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"
+                aria-hidden="true" focusable="false">
                 <line x1="18" y1="6" x2="6" y2="18"></line>
                 <line x1="6" y1="6" x2="18" y2="18"></line>
             </svg>
