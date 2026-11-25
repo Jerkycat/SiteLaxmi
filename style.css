@@ -489,48 +489,56 @@ main>.default-window form {
     margin-top: 2rem;
 }
 
-.reader-paragraph, .reader-letter {
+.reader-paragraph,
+.reader-letter {
     /* Preserve as quebras de linha (\n) e espaços, mas quebra a linha se o texto for muito longo */
-    white-space: pre-wrap; 
+    white-space: pre-wrap;
     word-wrap: break-word;
 }
 
 /* ── Letter Block ── */
 
 .reader-letter {
+    /* Métrica baseada exatamente no .reader-paragraph */
+    --p-font-size: 1.1rem;
+    --p-line-height: 1.85;
+    --line-step: calc(var(--p-font-size) * var(--p-line-height));
+    /* 2.035rem */
+
     width: min(100%, 50rem);
     margin: 1.5rem 0;
+    padding: 2.5rem 3rem;
+    box-sizing: border-box;
 
     background-color: #fffdf7;
     border: 1px solid #d4c5a9;
     border-radius: 0.25rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, .08), inset 0 0 40px rgba(210, 190, 150, .12);
 
-    padding: 2.5rem 3rem;
-
-    box-shadow:
-        0 2px 8px rgba(0, 0, 0, .08),
-        inset 0 0 40px rgba(210, 190, 150, .12);
-
-    /* Linhas horizontais sutis simulando papel pautado */
+    /* Gradiente sincronizado com a altura da linha */
     background-image: repeating-linear-gradient(to bottom,
-            transparent,
-            transparent calc(1.85em * 1.25rem / 1rem - 1px),
-            rgba(180, 160, 120, .18) calc(1.85em * 1.25rem / 1rem - 1px),
-            rgba(180, 160, 120, .18) calc(1.85em * 1.25rem / 1rem));
-    background-size: 100% calc(1.85 * 1.25rem);
-    background-position-y: 2.5rem;
+            transparent 0,
+            transparent calc(100% - 1px),
+            rgba(180, 160, 120, .25) calc(100% - 1px),
+            rgba(180, 160, 120, .25) 100%);
+    background-size: 100% var(--line-step);
+
+    /* 2.5rem (padding-top) menos o ajuste da baseline da fonte Georgia (~0.32rem) */
+    background-position-y: calc(2.5rem - 0.32rem);
 }
 
 .reader-letter .reader-paragraph {
     font-family: 'Georgia', 'Palatino Linotype', serif;
-    font-size: 1.1rem;
+    font-size: var(--p-font-size);
     color: #2c1f0e;
-    line-height: 1.85;
+    line-height: var(--p-line-height);
     text-indent: 0;
     text-align: left;
-    margin-bottom: 1rem;
     white-space: pre-wrap;
-    /* preserva tabs e espaços do arquivo original */
+
+    /* Zera margem superior e força o espaçamento entre parágrafos a ser 1 linha inteira */
+    margin-top: 0;
+    margin-bottom: var(--line-step);
 }
 
 .reader-letter .reader-title {
@@ -545,11 +553,13 @@ main>.default-window form {
 
 .reader-media {
     margin: 1.5rem 0;
-    text-align: center; /* centraliza caso a imagem não ocupe a largura toda */
+    text-align: center;
+    /* centraliza caso a imagem não ocupe a largura toda */
 }
 
 .reader-media img {
-    max-width: 100%;    /* nunca ultrapassa o leitor */
+    max-width: 100%;
+    /* nunca ultrapassa o leitor */
     height: auto;
     display: inline-block;
 }
